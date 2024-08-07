@@ -11,10 +11,6 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.74"
     }
-    modtm = {
-      source  = "azure/modtm"
-      version = "~> 0.3"
-    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -64,14 +60,13 @@ resource "azurerm_resource_group" "this" {
 # Do not specify location here due to the randomization above.
 # Leaving location as `null` will cause the module to use the resource group location
 # with a data source.
-module "test-default" {
+module "default" {
   source = "../../"
 
   location                             = local.location
   name                                 = "odaa-infra-${random_string.suffix.result}"
   display_name                         = "odaa-infra-${random_string.suffix.result}"
   resource_group_id                    = azurerm_resource_group.this.id
-  resource_group_name                  = azurerm_resource_group.this.name
   zone                                 = local.zone
   compute_count                        = 2
   storage_count                        = 3
@@ -80,7 +75,8 @@ module "test-default" {
   maintenance_window_preference        = "NoPreference"
   maintenance_window_patching_mode     = "Rolling"
 
-  tags = local.tags
+  tags             = local.tags
+  enable_telemetry = local.enable_telemetry
 
 }
 ```
@@ -93,8 +89,6 @@ The following requirements are needed by this module:
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9.2)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.74)
-
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
@@ -112,17 +106,7 @@ No required inputs.
 
 ## Optional Inputs
 
-The following input variables are optional (have default values):
-
-### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
-
-Description: This variable controls whether or not telemetry is enabled for the module.  
-For more information see <https://aka.ms/avm/telemetryinfo>.  
-If it is set to false, then no telemetry will be collected.
-
-Type: `bool`
-
-Default: `true`
+No optional inputs.
 
 ## Outputs
 
@@ -132,17 +116,17 @@ No outputs.
 
 The following Modules are called:
 
+### <a name="module_default"></a> [default](#module\_default)
+
+Source: ../../
+
+Version:
+
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
 
 Version: ~> 0.3
-
-### <a name="module_test-default"></a> [test-default](#module\_test-default)
-
-Source: ../../
-
-Version:
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
