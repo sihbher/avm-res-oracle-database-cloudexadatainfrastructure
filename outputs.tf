@@ -4,3 +4,10 @@ output "resource" {
   description = "This is the full output for the resource."
   value       = azapi_resource.odaa_infra
 }
+
+
+output "resource_id" {
+  description = "This is the ID of the resource."
+  value       = azapi_resource.odaa_infra.id
+
+}

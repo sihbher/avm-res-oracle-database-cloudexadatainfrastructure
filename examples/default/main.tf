@@ -5,10 +5,6 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.74"
     }
-    modtm = {
-      source  = "azure/modtm"
-      version = "~> 0.3"
-    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -58,14 +54,13 @@ resource "azurerm_resource_group" "this" {
 # Do not specify location here due to the randomization above.
 # Leaving location as `null` will cause the module to use the resource group location
 # with a data source.
-module "test-default" {
+module "default" {
   source = "../../"
 
   location                             = local.location
   name                                 = "odaa-infra-${random_string.suffix.result}"
   display_name                         = "odaa-infra-${random_string.suffix.result}"
   resource_group_id                    = azurerm_resource_group.this.id
-  resource_group_name                  = azurerm_resource_group.this.name
   zone                                 = local.zone
   compute_count                        = 2
   storage_count                        = 3
@@ -74,6 +69,7 @@ module "test-default" {
   maintenance_window_preference        = "NoPreference"
   maintenance_window_patching_mode     = "Rolling"
 
-  tags = local.tags
+  tags             = local.tags
+  enable_telemetry = local.enable_telemetry
 
 }
