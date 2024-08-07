@@ -1,19 +1,25 @@
+#====================================================================================================
+# Cloud Exadata VM Cliuster variables
+#====================================================================================================
+variable "name" {
+  type        = string
+  description = "The name of the the Oracle Exatada Infrastructure resource."
+
+  #validation {
+  #condition     = can(regex("^[a-z0-9]{5,50}$", var.name))
+  #error_message = "The name must be between 5 and 50 characters long and can only contain lowercase letters and numbers."
+  #}
+}
 variable "location" {
   type        = string
   description = "Azure region where the resource should be deployed."
   nullable    = false
 }
 
-variable "name" {
+variable "resource_group_id" {
   type        = string
-  description = "The name of the this resource."
-
-  validation {
-    condition     = can(regex("TODO", var.name))
-    error_message = "The name must be TODO." # TODO remove the example below once complete:
-    #condition     = can(regex("^[a-z0-9]{5,50}$", var.name))
-    #error_message = "The name must be between 5 and 50 characters long and can only contain lowercase letters and numbers."
-  }
+  description = "The resource group ID where the resources will be deployed."
+  nullable    = false
 }
 
 # This is required for most resource modules
@@ -22,7 +28,64 @@ variable "resource_group_name" {
   description = "The resource group where the resources will be deployed."
 }
 
+variable "zone" {
+  type        = string
+  description = "The Availability Zone for the resource."
+  default     = "3"
+  validation {
+    condition     = can(regex("^[1-3]$", var.zone))
+    error_message = "The zone must be a number between 1 and 3."
+  }
+}
+
+variable "compute_count" {
+  type        = number
+  description = "The number of compute nodes in the infrastructure."
+}
+variable "display_name" {
+  type        = string
+  description = "The display name of the infrastructure."
+}
+variable "maintenance_window_leadtime_in_weeks" {
+  type        = number
+  description = "The maintenance window load time in weeks."
+  default     = 0
+}
+variable "maintenance_window_preference" {
+  type        = string
+  description = "The maintenance window preference."
+  default     = "NoPreference"
+
+}
+variable "maintenance_window_patching_mode" {
+  type        = string
+  description = "The maintenance window patching mode."
+  default     = "Rolling"
+}
+variable "shape" {
+  type        = string
+  description = "The shape of the infrastructure."
+  default     = "Exadata.X9M"
+}
+variable "storage_count" {
+  type        = number
+  description = "The number of storage servers in the infrastructure."
+}
+
+
+
+
+
+
+
+
+
+
+
+#====================================================================================================
 # required AVM interfaces
+#====================================================================================================
+
 # remove only if not supported by the resource
 # tflint-ignore: terraform_unused_declarations
 variable "customer_managed_key" {
@@ -90,16 +153,6 @@ DESCRIPTION
   }
 }
 
-variable "enable_telemetry" {
-  type        = bool
-  default     = true
-  description = <<DESCRIPTION
-This variable controls whether or not telemetry is enabled for the module.
-For more information see <https://aka.ms/avm/telemetryinfo>.
-If it is set to false, then no telemetry will be collected.
-DESCRIPTION
-  nullable    = false
-}
 
 variable "lock" {
   type = object({
@@ -231,4 +284,15 @@ variable "tags" {
   type        = map(string)
   default     = null
   description = "(Optional) Tags of the resource."
+}
+
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+  nullable    = false
 }

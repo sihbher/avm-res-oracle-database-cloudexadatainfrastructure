@@ -1,5 +1,5 @@
 terraform {
-  required_version = "~> 1.5"
+  required_version = ">= 1.9.2"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -20,20 +20,20 @@ provider "azurerm" {
   features {}
 }
 
-
-## Section to provide a random Azure region for the resource group
-# This allows us to randomize the region for the resource group.
-module "regions" {
-  source  = "Azure/avm-utl-regions/azurerm"
-  version = "~> 0.1"
+locals {
+  location         = "eastus"
+  zone             = "3"
+  enable_telemetry = true
+  tags = {
+    scenario         = "Default"
+    project          = "Oracle Database @ Azure"
+    createdby        = "ODAA Infra - AVM Module"
+    delete           = "yes"
+    deploy_timestamp = timestamp()
+  }
 }
 
-# This allows us to randomize the region for the resource group.
-resource "random_integer" "region_index" {
-  max = length(module.regions.regions) - 1
-  min = 0
-}
-## End of section to provide a random Azure region for the resource group
+
 
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
@@ -41,23 +41,39 @@ module "naming" {
   version = "~> 0.3"
 }
 
+resource "random_string" "suffix" {
+  length  = 5
+  upper   = false
+  special = false
+}
+
 # This is required for resource modules
 resource "azurerm_resource_group" "this" {
-  location = module.regions.regions[random_integer.region_index.result].name
+  location = local.location
   name     = module.naming.resource_group.name_unique
+  tags     = local.tags
 }
 
 # This is the module call
 # Do not specify location here due to the randomization above.
 # Leaving location as `null` will cause the module to use the resource group location
 # with a data source.
-module "test" {
+module "test-default" {
   source = "../../"
-  # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
-  # ...
-  location            = azurerm_resource_group.this.location
-  name                = "TODO" # TODO update with module.naming.<RESOURCE_TYPE>.name_unique
-  resource_group_name = azurerm_resource_group.this.name
 
-  enable_telemetry = var.enable_telemetry # see variables.tf
+  location = local.location
+  name                                 = "odaa-infra-${random_string.suffix.result}"
+  display_name                         = "odaa-infra-${random_string.suffix.result}"
+  resource_group_id                    = azurerm_resource_group.this.id
+  resource_group_name                  = azurerm_resource_group.this.name
+  zone                                 = local.zone
+  compute_count                        = 2
+  storage_count                        = 3
+  shape                                = "Exadata.X9M"
+  maintenance_window_leadtime_in_weeks = 0
+  maintenance_window_preference        = "NoPreference"
+  maintenance_window_patching_mode     = "Rolling"
+
+  tags = local.tags
+
 }
