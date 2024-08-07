@@ -21,9 +21,8 @@ provider "azurerm" {
 }
 
 locals {
-  location         = "eastus"
-  zone             = "3"
   enable_telemetry = true
+  location         = "eastus"
   tags = {
     scenario         = "Default"
     project          = "Oracle Database @ Azure"
@@ -31,6 +30,7 @@ locals {
     delete           = "yes"
     deploy_timestamp = timestamp()
   }
+  zone = "3"
 }
 
 
@@ -43,8 +43,8 @@ module "naming" {
 
 resource "random_string" "suffix" {
   length  = 5
-  upper   = false
   special = false
+  upper   = false
 }
 
 # This is required for resource modules
@@ -61,7 +61,7 @@ resource "azurerm_resource_group" "this" {
 module "test-default" {
   source = "../../"
 
-  location = local.location
+  location                             = local.location
   name                                 = "odaa-infra-${random_string.suffix.result}"
   display_name                         = "odaa-infra-${random_string.suffix.result}"
   resource_group_id                    = azurerm_resource_group.this.id

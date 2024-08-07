@@ -7,7 +7,10 @@ Things to do:
 
 1. Set up a GitHub repo environment called `test`.
 1. Configure environment protection rule to ensure that approval is required before deploying to this environment.
-1. Install Docker Desktop to run tests
+1. Create a user-assigned managed identity in your test subscription.
+1. Create a role assignment for the managed identity on your test subscription, use the minimum required role.
+1. Configure federated identity credentials on the user assigned managed identity. Use the GitHub environment.
+1. Search and update TODOs within the code and remove the TODO comments once complete.
 
 > [!IMPORTANT]
 > As the overall AVM framework is not GA (generally available) yet - the CI framework and test automation is not fully functional and implemented across all supported languages yet - breaking changes are expected, and additional customer feedback is yet to be gathered and incorporated. Hence, modules **MUST NOT** be published at version `1.0.0` or higher at this time.
@@ -21,34 +24,21 @@ Things to do:
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.5)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9.2)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.71)
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 1.14.0)
+
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.74)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
-## Providers
-
-The following providers are used by this module:
-
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.71)
-
-- <a name="provider_modtm"></a> [modtm](#provider\_modtm) (~> 0.3)
-
-- <a name="provider_random"></a> [random](#provider\_random) (~> 3.5)
-
 ## Resources
 
 The following resources are used by this module:
 
-- [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_private_endpoint.this_managed_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_private_endpoint.this_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_private_endpoint_application_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint_application_security_group_association) (resource)
-- [azurerm_resource_group.TODO](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
+- [azapi_resource.odaa_infra](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azurerm_client_config.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
@@ -59,6 +49,18 @@ The following resources are used by this module:
 
 The following input variables are required:
 
+### <a name="input_compute_count"></a> [compute\_count](#input\_compute\_count)
+
+Description: The number of compute nodes in the infrastructure.
+
+Type: `number`
+
+### <a name="input_display_name"></a> [display\_name](#input\_display\_name)
+
+Description: The display name of the infrastructure.
+
+Type: `string`
+
 ### <a name="input_location"></a> [location](#input\_location)
 
 Description: Azure region where the resource should be deployed.
@@ -67,7 +69,13 @@ Type: `string`
 
 ### <a name="input_name"></a> [name](#input\_name)
 
-Description: The name of the this resource.
+Description: The name of the the Oracle Exatada Infrastructure resource.
+
+Type: `string`
+
+### <a name="input_resource_group_id"></a> [resource\_group\_id](#input\_resource\_group\_id)
+
+Description: The resource group ID where the resources will be deployed.
 
 Type: `string`
 
@@ -76,6 +84,12 @@ Type: `string`
 Description: The resource group where the resources will be deployed.
 
 Type: `string`
+
+### <a name="input_storage_count"></a> [storage\_count](#input\_storage\_count)
+
+Description: The number of storage servers in the infrastructure.
+
+Type: `number`
 
 ## Optional Inputs
 
@@ -166,6 +180,30 @@ object({
 ```
 
 Default: `null`
+
+### <a name="input_maintenance_window_leadtime_in_weeks"></a> [maintenance\_window\_leadtime\_in\_weeks](#input\_maintenance\_window\_leadtime\_in\_weeks)
+
+Description: The maintenance window load time in weeks.
+
+Type: `number`
+
+Default: `0`
+
+### <a name="input_maintenance_window_patching_mode"></a> [maintenance\_window\_patching\_mode](#input\_maintenance\_window\_patching\_mode)
+
+Description: The maintenance window patching mode.
+
+Type: `string`
+
+Default: `"Rolling"`
+
+### <a name="input_maintenance_window_preference"></a> [maintenance\_window\_preference](#input\_maintenance\_window\_preference)
+
+Description: The maintenance window preference.
+
+Type: `string`
+
+Default: `"NoPreference"`
 
 ### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
 
@@ -278,6 +316,14 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_shape"></a> [shape](#input\_shape)
+
+Description: The shape of the infrastructure.
+
+Type: `string`
+
+Default: `"Exadata.X9M"`
+
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
 Description: (Optional) Tags of the resource.
@@ -286,13 +332,17 @@ Type: `map(string)`
 
 Default: `null`
 
+### <a name="input_zone"></a> [zone](#input\_zone)
+
+Description: The Availability Zone for the resource.
+
+Type: `string`
+
+Default: `"3"`
+
 ## Outputs
 
 The following outputs are exported:
-
-### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
-
-Description:   A map of the private endpoints created.
 
 ### <a name="output_resource"></a> [resource](#output\_resource)
 

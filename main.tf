@@ -1,14 +1,6 @@
 
 resource "azapi_resource" "odaa_infra" {
-  type      = "Oracle.Database/cloudExadataInfrastructures@2023-09-01"
-  parent_id = var.resource_group_id
-  name      = var.name
-
-  timeouts {
-    create = "1h30m"
-    delete = "20m"
-  }
-
+  type = "Oracle.Database/cloudExadataInfrastructures@2023-09-01"
   body = {
     "location" : var.location,
     "zones" : [
@@ -28,7 +20,13 @@ resource "azapi_resource" "odaa_infra" {
       "storageCount" : var.storage_count,
     }
   }
+  name                      = var.name
+  parent_id                 = var.resource_group_id
   schema_validation_enabled = false
-  #depends_on = [ data.azurerm_resource_group.rg ]
+
+  timeouts {
+    create = "1h30m"
+    delete = "20m"
+  }
 }
 
