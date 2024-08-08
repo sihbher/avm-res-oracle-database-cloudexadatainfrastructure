@@ -85,33 +85,15 @@ Description: The number of storage servers in the infrastructure.
 
 Type: `number`
 
+### <a name="input_zone"></a> [zone](#input\_zone)
+
+Description: The Availability Zone for the resource.
+
+Type: `string`
+
 ## Optional Inputs
 
 The following input variables are optional (have default values):
-
-### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
-
-Description: A map describing customer-managed keys to associate with the resource. This includes the following properties:
-- `key_vault_resource_id` - The resource ID of the Key Vault where the key is stored.
-- `key_name` - The name of the key.
-- `key_version` - (Optional) The version of the key. If not specified, the latest version is used.
-- `user_assigned_identity` - (Optional) An object representing a user-assigned identity with the following properties:
-  - `resource_id` - The resource ID of the user-assigned identity.
-
-Type:
-
-```hcl
-object({
-    key_vault_resource_id = string
-    key_name              = string
-    key_version           = optional(string, null)
-    user_assigned_identity = optional(object({
-      resource_id = string
-    }), null)
-  })
-```
-
-Default: `null`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
@@ -147,6 +129,38 @@ Type: `string`
 
 Default: `"NoPreference"`
 
+### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
+
+Description: A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
+- `principal_id` - The ID of the principal to assign the role to.
+- `description` - The description of the role assignment.
+- `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
+- `condition` - The condition which will be used to scope the role assignment.
+- `condition_version` - The version of the condition syntax. Valid values are '2.0'.
+- `delegated_managed_identity_resource_id` - (Optional) The delegated Azure Resource Id which contains a Managed Identity. Changing this forces a new resource to be created. This field is only used in cross-tenant scenario.
+- `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
+
+> Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
+
+Type:
+
+```hcl
+map(object({
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_shape"></a> [shape](#input\_shape)
 
 Description: The shape of the infrastructure.
@@ -162,14 +176,6 @@ Description: (Optional) Tags of the resource.
 Type: `map(string)`
 
 Default: `null`
-
-### <a name="input_zone"></a> [zone](#input\_zone)
-
-Description: The Availability Zone for the resource.
-
-Type: `string`
-
-Default: `"3"`
 
 ## Outputs
 
