@@ -83,5 +83,5 @@ output "resource" {
 output "resource_id" {
   description = "This is the ID of the resource."
   value       = module.default.resource_id
-  
+
 }
