@@ -81,16 +81,6 @@ module "default" {
 
 }
 
-output "resource" {
-  description = "This is the full output for the resource."
-  value       = module.default.resource
-}
-
-output "resource_id" {
-  description = "This is the ID of the resource."
-  value       = module.default.resource_id
-
-}
 ```
 
 <!-- markdownlint-disable MD033 -->
@@ -122,15 +112,7 @@ No optional inputs.
 
 ## Outputs
 
-The following outputs are exported:
-
-### <a name="output_resource"></a> [resource](#output\_resource)
-
-Description: This is the full output for the resource.
-
-### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
-
-Description: This is the ID of the resource.
+No outputs.
 
 ## Modules
 

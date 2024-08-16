@@ -75,13 +75,3 @@ module "default" {
 
 }
 
-output "resource" {
-  description = "This is the full output for the resource."
-  value       = module.default.resource
-}
-
-output "resource_id" {
-  description = "This is the ID of the resource."
-  value       = module.default.resource_id
-
-}
