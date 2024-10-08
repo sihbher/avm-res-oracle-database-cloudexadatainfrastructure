@@ -1,23 +1,106 @@
 <!-- BEGIN_TF_DOCS -->
-# terraform-azurerm-avm-template
+# avm-res-oracledatabase-cloudexadatainfrastructure
+This repository contains a Terraform module for deploying Oracle Database Cloud Exadata Infrastructure using Azure Verified Modules (AVM). The module provisions scalable Oracle Cloud Exadata Infrastructure in an enterprise-ready configuration on Microsoft Azure.
+## Known issues
+- Idempotency Issue with Exadata Infrastructure documented [here](https://github.com/oci-landing-zones/terraform-oci-multicloud-azure/issues/33)
+- Update/Changes. Oracle Exadata Infrastructure resource at this moment does not support updates, so every attempt to change any of its properties will trigger the destroy and recreation of the resource. Documented [here](https://github.com/oci-landing-zones/terraform-oci-multicloud-azure/issues/39) and [here](https://github.com/oci-landing-zones/terraform-oci-multicloud-azure/issues/40)
+## Features
+- Deploys Oracle Database Cloud Exadata Infrastructure on Azure
+- Supports telemetry and monitoring
+- Configurable maintenance windows
+## Prerequisites
+- Terraform >= 1.9.2
+- Azure CLI
+- An Azure subscription
+## Requirements
+The following requirements are needed by this module:
+- <a name="requirement\_terraform"></a> [terraform](#requirement\\_terraform) (>= 1.9.2)
+- <a name="requirement\_azapi"></a> [azapi](#requirement\\_azapi) (~> 1.14.0)
+- <a name="requirement\_azurerm"></a> [azurerm](#requirement\\_azurerm) (~> 3.116.0)
+- <a name="requirement\_modtm"></a> [modtm](#requirement\\_modtm) (~> 0.3)
+- <a name="requirement\_random"></a> [random](#requirement\\_random) (~> 3.5)
+## Usage
+```hcl
+terraform {
+  required_version = ">= 1.9.2"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.74"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
+    }
+  }
+}
+provider "azurerm" {
+  features {}
+  skip_provider_registration = true
+}
+locals {
+  enable_telemetry = true
+  location         = "eastus"
+  tags = {
+    scenario  = "Default"
+    project   = "Oracle Database @ Azure"
+    createdby = "ODAA Infra - AVM Module"
+  }
+  zone = "3"
+}
+resource "random_string" "suffix" {
+  length  = 5
+  special = false
+  upper   = false
+}
+resource "azurerm_resource_group" "this" {
+  location = local.location
+  name     = "example-resource-group"
+  tags     = local.tags
+}
+module "default" {
+  source                               = "../../"
+  location                             = local.location
+  name                                 = "odaa-infra-${random_string.suffix.result}"
+  display_name                         = "odaa-infra-${random_string.suffix.result}"
+  resource_group_id                    = azurerm_resource_group.this.id
+  zone                                 = local.zone
+  compute_count                        = 2
+  storage_count                        = 3
+  shape                                = "Exadata.X9M"
+  maintenance_window_leadtime_in_weeks = 0
+  maintenance_window_preference        = "NoPreference"
+  maintenance_window_patching_mode     = "Rolling"
+  tags                                 = local.tags
+  enable_telemetry                     = local.enable_telemetry
+}
+```
 
-This is a template repo for Terraform Azure Verified Modules.
-
-Things to do:
-
-1. Set up a GitHub repo environment called `test`.
-1. Configure environment protection rule to ensure that approval is required before deploying to this environment.
-1. Create a user-assigned managed identity in your test subscription.
-1. Create a role assignment for the managed identity on your test subscription, use the minimum required role.
-1. Configure federated identity credentials on the user assigned managed identity. Use the GitHub environment.
-1. Search and update TODOs within the code and remove the TODO comments once complete.
-
-> [!IMPORTANT]
-> As the overall AVM framework is not GA (generally available) yet - the CI framework and test automation is not fully functional and implemented across all supported languages yet - breaking changes are expected, and additional customer feedback is yet to be gathered and incorporated. Hence, modules **MUST NOT** be published at version `1.0.0` or higher at this time.
->
-> All module **MUST** be published as a pre-release version (e.g., `0.1.0`, `0.1.1`, `0.2.0`, etc.) until the AVM framework becomes GA.
->
-> However, it is important to note that this **DOES NOT** mean that the modules cannot be consumed and utilized. They **CAN** be leveraged in all types of environments (dev, test, prod etc.). Consumers can treat them just like any other IaC module and raise issues or feature requests against them as they learn from the usage of the module. Consumers should also read the release notes for each version, if considering updating to a more recent version of a module to see if there are any considerations or breaking changes etc.
+## Inputs
+| Name                                 | Type        | Default Value      | Description                                                                 |
+|--------------------------------------|-------------|--------------------|-----------------------------------------------------------------------------|
+| `compute_count`                      | `number`    |                    | The number of compute nodes in the infrastructure.                          |
+| `display_name`                       | `string`    |                    | The display name of the infrastructure.                                     |
+| `location`                           | `string`    |                    | Azure region where the resource should be deployed.                         |
+| `name`                               | `string`    |                    | The name of the Oracle Exadata Infrastructure resource.                     |
+| `resource_group_id`                  | `string`    |                    | The resource group ID where the resources will be deployed.                 |
+| `storage_count`                      | `number`    |                    | The number of storage servers in the infrastructure.                        |
+| `zone`                               | `string`    |                    | The Availability Zone for the resource.                                     |
+| `enable_telemetry`                   | `bool`      | `true`             | Controls whether telemetry is enabled.                                      |
+| `maintenance_window_leadtime_in_weeks` | `number`    | `0`                | The maintenance window lead time in weeks.                                  |
+| `maintenance_window_patching_mode`   | `string`    | `"Rolling"`        | The maintenance window patching mode.                                       |
+| `maintenance_window_preference`      | `string`    | `"NoPreference"`   | The maintenance window preference.                                          |
+| `shape`                              | `string`    | `"Exadata.X9M"`    | The shape of the infrastructure.                                            |
+| `tags`                               | `map(string)` | `null`             | (Optional) Tags of the resource.                                            |
+## Outputs
+| Name         | Type   | Description                        |
+|--------------|--------|------------------------------------|
+| `resource`   | `any`  | This is the full output for the resource. |
+| `resource_id`| `string` | This is the ID of the resource.   |
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Contributing
+Please read [CODE\_OF\_CONDUCT.md](CODE\_OF\_CONDUCT.md) for details on our code of conduct, and the process for submitting pull requests.
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
