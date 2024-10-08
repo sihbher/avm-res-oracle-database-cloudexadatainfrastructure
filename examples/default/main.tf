@@ -21,11 +21,10 @@ locals {
   enable_telemetry = true
   location         = "eastus"
   tags = {
-    scenario         = "Default"
-    project          = "Oracle Database @ Azure"
-    createdby        = "ODAA Infra - AVM Module"
-    delete           = "yes"
-    deploy_timestamp = timestamp()
+    scenario  = "Default"
+    project   = "Oracle Database @ Azure"
+    createdby = "ODAA Infra - AVM Module"
+    delete    = "yes"
   }
   zone = "3"
 }
